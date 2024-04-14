@@ -1,0 +1,328 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>pwn学习记录一 | Q-Sheep妙妙屋</title><meta name="author" content="Q-Sheep"><meta name="copyright" content="Q-Sheep"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="寄存器寄存器总览总览不同寄存器的区别和作用  RIP：程序计数寄存器，来存放下一条即将用来执行的指令的地址，它决定程序执行的流程。（较常用） RBP：栈基寄存器，存放当前栈帧的栈底地址（较常用） RAX：通用寄存器。存放函数返回值 RSP：栈顶寄存器，存放当前栈帧的栈顶地址（较常用） RAX：随机存取寄存器 AX：累加寄存器，分为AH高八位和AL低八位 AH：累加寄存器，AX（16位）寄存器的高八">
+<meta property="og:type" content="article">
+<meta property="og:title" content="pwn学习记录一">
+<meta property="og:url" content="http://example.com/2024/03/31/pwn%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95%E4%B8%80/index.html">
+<meta property="og:site_name" content="Q-Sheep妙妙屋">
+<meta property="og:description" content="寄存器寄存器总览总览不同寄存器的区别和作用  RIP：程序计数寄存器，来存放下一条即将用来执行的指令的地址，它决定程序执行的流程。（较常用） RBP：栈基寄存器，存放当前栈帧的栈底地址（较常用） RAX：通用寄存器。存放函数返回值 RSP：栈顶寄存器，存放当前栈帧的栈顶地址（较常用） RAX：随机存取寄存器 AX：累加寄存器，分为AH高八位和AL低八位 AH：累加寄存器，AX（16位）寄存器的高八">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/face.jpg">
+<meta property="article:published_time" content="2024-03-31T13:20:50.000Z">
+<meta property="article:modified_time" content="2024-04-14T01:23:12.763Z">
+<meta property="article:author" content="Q-Sheep">
+<meta property="article:tag" content="PWN">
+<meta property="article:tag" content="栈溢出">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/face.jpg"><link rel="shortcut icon" href="/img/head.jpg"><link rel="canonical" href="http://example.com/2024/03/31/pwn%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95%E4%B8%80/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=4.13.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.1/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'pwn学习记录一',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-04-14 09:23:12'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><meta name="generator" content="Hexo 7.0.0"><link rel="alternate" href="/atom.xml" title="Q-Sheep妙妙屋" type="application/atom+xml">
+</head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/head.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">2</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><hr class="custom-hr"/></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/img/face.jpg')"><nav id="nav"><span id="blog-info"><a href="/" title="Q-Sheep妙妙屋"><span class="site-name">Q-Sheep妙妙屋</span></a></span><div id="menus"><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">pwn学习记录一</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-03-31T13:20:50.000Z" title="发表于 2024-03-31 21:20:50">2024-03-31</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-04-14T01:23:12.763Z" title="更新于 2024-04-14 09:23:12">2024-04-14</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="pwn学习记录一"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="寄存器"><a href="#寄存器" class="headerlink" title="寄存器"></a>寄存器</h1><h2 id="寄存器总览"><a href="#寄存器总览" class="headerlink" title="寄存器总览"></a>寄存器总览</h2><p>总览不同寄存器的区别和作用</p>
+<blockquote>
+<pre><code>RIP：程序计数寄存器，来存放下一条即将用来执行的指令的地址，它决定程序执行的流程。（较常用）
+RBP：栈基寄存器，存放当前栈帧的栈底地址（较常用）
+RAX：通用寄存器。存放函数返回值
+RSP：栈顶寄存器，存放当前栈帧的栈顶地址（较常用）
+RAX：随机存取寄存器
+AX：累加寄存器，分为AH高八位和AL低八位
+AH：累加寄存器，AX（16位）寄存器的高八位
+AL：累加寄存器，AX（16位）寄存器的低八位
+EAX:累加寄存器，是很多加法乘法指令的缺省寄存器
+EBX：基地址寄存器，在内存寻址时存放基地址
+ECX：计数器
+EDX：数据寄存器，被用于来放整数除法产生的余数
+ESI：源变址寄存器
+EDI：目的变址寄存器
+EBP：扩展基址指针寄存器，EBP来存储当前函数状态的基地址，在函数运行时不变，可以用来索引|确定函数参数或局部变量 的位置。（较常用）
+ESP：栈指针寄存器，ESP用来存储函数调用栈的栈顶地址，在压栈和退栈时 发生变化。（较常用）
+EIP：指令指针寄存器，EIP用来存储即将执行的程序指令的地址, cpu依照EIP的存储内容读取指令并执行，EIP 随之指向相 邻的下一条指令,如此反复,程序就得以连续执行指令。（较常用）
+
+————————————————
+
+64位cpu对应RSP（栈顶寄存器）,RBP（栈基寄存器）,RIP（程序计数寄存器）三个寄存器。
+32位cpu则对应ESP（栈指针寄存器），EBP（扩展基址指针寄存器），EIP（指令指针寄存器）三个寄存器。
+R开头：64bit, 8字节（1字节=8bit）
+E开头：32bit, 4字节
+EAX（累加寄存器）是32位， AX 是EAX的低16位 ， AL 和AH是AX的低8位和高8位。
+AX,BX,CX：16bit, 2字节
+AH, AL: 8bit, 1字节
+————————————————
+
+BX是基（base）地址寄存器：四个寄存器中唯一可作为存储器指针使用的寄存器。
+CX寄存器是计数(count)寄存器：在字符串操作和循环操作时，用它来控制重复循环操作次数。在移位操作时，cl寄存器用来保存移位的位数。
+BP和SP寄存器称为指针寄存器：BP主要用于给出堆栈中数据区基址的偏移，从而方便地实现直接存取堆栈中的数据，所以BP也称为基指针寄存器，正常情况下SP只作为堆栈指针使用，即保存堆栈栈顶地址的偏移。
+</code></pre>
+</blockquote>
+<p>ax  16位    eax   32位     rax    64位<br>al表示ax寄存器的低八位</p>
+<p>PTR   指针<br>BYTE   8位<br>WORD   16位<br>DWORD    32位<br>QWORD    64位</p>
+<p>rbp和rsp用来去做栈  rax用来储存程序的返回值 </p>
+<p><img src="https://s2.loli.net/2024/04/14/btjphJ2WOwnz671.png" alt="image-20240302102233231"></p>
+<h2 id="栈帧"><a href="#栈帧" class="headerlink" title="栈帧"></a>栈帧</h2><p>一个栈桢保存一个函数的状态信息，复合函数每调用一个子函数就会在函数调用栈中新增一个栈帧</p>
+<p>栈帧的栈底保存在ebp或rbp中，栈顶保存在esp或rsp中，cpu32位（x86)e开头，64位r开头</p>
+<p><img src="https://s2.loli.net/2024/04/14/VH3vn2EkUC5GpRb.png" alt="image-20240328164640740"></p>
+<p>右侧为计算机虚拟内存，中间stack部分就是栈</p>
+<p>ebp和esp之间的部分就是当前函数栈帧，紧邻这一部分的高地址位就是复合函数栈帧</p>
+<p>左侧arguments是子函数的，子函数的信息保存在父函数末尾</p>
+<p><strong>stack frame pointer</strong></p>
+<p>在当前调用子函数返回之后需要恢复上一个栈帧的信息，也就意味着ebp指针的位置也要被恢复，指针的值被保存在stack frame pointer中，他会在当前栈帧紧邻的上一个字长记录父函数的栈帧的栈底指针的值，方便之后恢复</p>
+<p><strong>callee saved registers</strong></p>
+<p>“被调用者保存寄存器”      在程序调用过程中，这些寄存器中的值需要被保存，不能被覆盖；当某个程序调用这些寄存器，被调用寄存器会先保存这些值然后再进行调用，且在调用结束后恢复被调用之前的值</p>
+<p><strong>local variables</strong></p>
+<p>当前函数栈帧的局部变量区（栈溢出发生在这里）</p>
+<p> <strong>两个很重要的部分</strong></p>
+<p> <em>return address</em>   返回地址 </p>
+<p><em>stack frame pointer</em>   上一个栈帧的栈顶的值，也就是上一个栈帧ebp寄存器的值 </p>
+<p>​                                （因为栈的存储特点（压栈）导致上一个函数的栈帧向上移动了一位）</p>
+<h2 id="压栈"><a href="#压栈" class="headerlink" title="压栈"></a>压栈</h2><p>倒序压栈，子函数的末尾先被压入，且从栈顶开始压栈，也就是说调用函数的开头在栈顶，而末尾更靠近栈底</p>
+<p><img src="https://s2.loli.net/2024/04/14/uB7whctxyvz4eUM.png" alt="image-20240328171701289"></p>
+<p>且栈的特殊点在于低位是栈顶，高位是栈底（这一点在虚拟内存栈和堆对于空白区域的运用是有关的</p>
+<p><img src="https://s2.loli.net/2024/04/14/5vTHSYPKAxoibwC.png" alt="image-20240328171830910"></p>
+<ul>
+<li><p>在压栈的过程中esp所对应的位置值会不断变小，这符合栈结构向下延伸的特点</p>
+</li>
+<li><p>压入栈内的数据包括调用参数、返回地址、调用函数的基地址，以及局部变量，其中调用参数以外的数据共同构成了被调用函数（callee）的状态</p>
+</li>
+<li><p>在编译过程中就会确定栈的空间大小（栈一般约有8MB的空间，堆相对来说大很多，可以申请几GB的内存空间）</p>
+</li>
+<li><p>在压栈完成之后，ebp指向的是子函数的栈底，esp指向的是子函数的栈顶</p>
+</li>
+<li><p>对于栈来说他的栈顶永远是当前执行函数所对应的栈帧</p>
+</li>
+</ul>
+<h2 id="子函数和父函数"><a href="#子函数和父函数" class="headerlink" title="子函数和父函数"></a>子函数和父函数</h2><p>首先是两个名词：调用函数  <strong>caller</strong>   被调用函数  <strong>callee</strong> </p>
+<p><img src="https://s2.loli.net/2024/04/14/AkneDb3sjaE9IxB.png" alt="image-20240328172921688"></p>
+<p>例如图片中的c文件脚本，运行的时候main函数会调用sum函数，因此在这个脚本中sum函数是子函数，main函数是sum函数的父函数</p>
+<p>在main函数调用sum函数时会把sum函数压栈到main函数的栈帧，将sum1，2逆序压入栈帧之中</p>
+<h1 id="栈溢出基础"><a href="#栈溢出基础" class="headerlink" title="栈溢出基础"></a>栈溢出基础</h1><h2 id="C语言函数调用栈"><a href="#C语言函数调用栈" class="headerlink" title="C语言函数调用栈"></a>C语言函数调用栈</h2><p>函数调用栈在虚拟内存用户空间的最高地址</p>
+<p><img src="https://s2.loli.net/2024/04/14/Doj2fmztnpHPa58.png" alt="image-20240414083149177"></p>
+<p>父函数每调用一个子函数就会在函数调用栈中新增一个栈帧</p>
+<p><img src="https://s2.loli.net/2024/04/14/uB7whctxyvz4eUM.png" alt="image-20240328171701289"></p>
+<p>如上图，先压入调用函数的参数</p>
+<p><img src="F:/%E4%BD%A0%E6%9C%89%E5%A4%9A%E6%83%B3pwn%E7%AC%94%E8%AE%B0/picture/image-20240328173558993.png" alt="image-20240328173558993"></p>
+<p>然后会将函数的返回地址（return address）压入栈顶，在sum函数执行完之后会运行return 0自动返回</p>
+<blockquote>
+<p>这里压入的返回地址就是return 0的地址</p>
+</blockquote>
+<p><img src="https://s2.loli.net/2024/04/14/kV7cH6uPW4Qiynt.png" alt="image-20240328180615269"></p>
+<p>在处理完sum函数之后就要恢复main函数的栈帧，这里就需要main函数的相关信息，也就意味着在处理sum函数之前我们就需要保存main函数的信息，这一步就是通过将main函数栈帧的ebp压入栈帧来实现的</p>
+<p><img src="https://s2.loli.net/2024/04/14/9fLbFmh5CiY4kOD.png" alt="image-20240328182825190"></p>
+<p>这里是将调用函数（callee) 的局部变量等数据压入栈内</p>
+<blockquote>
+<p>这一部分数据在调用完毕之后就会自动释放掉</p>
+</blockquote>
+<h1 id="格式化字符串漏洞"><a href="#格式化字符串漏洞" class="headerlink" title="格式化字符串漏洞"></a>格式化字符串漏洞</h1><p>格式化字符串漏洞是一种为例比较大的漏洞，造成原因是使用类似printf(str)这类语句，里面的str可以由用户自己定义，因而可以执行各种操作</p>
+<h2 id="printf函数"><a href="#printf函数" class="headerlink" title="printf函数"></a>printf函数</h2><p>出现格式化字符串漏洞就会有printf出现</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;stdio.h&gt;</span><br><span class="line"></span><br><span class="line">       int printf(const char *format, ...);</span><br><span class="line">       int fprintf(FILE *stream, const char *format, ...);</span><br><span class="line">       int dprintf(int fd, const char *format, ...);</span><br><span class="line">       int sprintf(char *str, const char *format, ...);</span><br><span class="line">       int snprintf(char *str, size_t size, const char *format, ...);</span><br><span class="line"></span><br><span class="line">       #include &lt;stdarg.h&gt;</span><br><span class="line"></span><br><span class="line">       int vprintf(const char *format, va_list ap);</span><br><span class="line">       int vfprintf(FILE *stream, const char *format, va_list ap);</span><br><span class="line">       int vdprintf(int fd, const char *format, va_list ap);</span><br><span class="line">       int vsprintf(char *str, const char *format, va_list ap);</span><br><span class="line">       int vsnprintf(char *str, size_t size, const char *format, va_list ap);</span><br></pre></td></tr></table></figure>
+
+<p>总体特征：都有format格式化字符串和省略号</p>
+<p>省略号在C语言参数列表中表示未定参数，参数类型和数量都由用户自己决定的</p>
+<p>注：除了printf之外还有scanf也能出现格式化字符串漏洞</p>
+<h2 id="格式化字符串"><a href="#格式化字符串" class="headerlink" title="格式化字符串"></a>格式化字符串</h2><p>格式化字符串可以将特定的字符组合将进行转换说明，for example</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;stdio.h&gt;</span><br><span class="line">int main()&#123;</span><br><span class="line">    year = 2021;</span><br><span class="line">    printf(&quot;hello,%d&quot;,year);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>%d就是这个特定的字符组合，在这里说明输出的应该是一个整型数字</p>
+<blockquote>
+<p>那么为什么需要格式化字符串呢？因为后面的参数并不确定(不管是个数还是数据类型)，计算机根本无法识别哪些数据是printf的参数，哪些数据是调用者的数据(因为函数调用之前就是把参数push进去)。因此如果有格式化字符串，首先系统会识别%，如果%后面跟的是正确的组合(例如d、s、p等)，然后就会判断后面的字符是否符合格式化字符串的规则，如果符合则会输出对应的数据。</p>
+</blockquote>
+<h3 id="格式化字符串输出类型"><a href="#格式化字符串输出类型" class="headerlink" title="格式化字符串输出类型"></a>格式化字符串输出类型</h3><p>%后跟特定字符代表以特定形式打印或其他方式处理字符串</p>
+<table>
+<thead>
+<tr>
+<th>形式</th>
+<th>定义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>%f&#x2F;%e</td>
+<td>浮点数&#x2F;科学表示格式的浮点数，%e如果是%E那么输出大写字母</td>
+</tr>
+<tr>
+<td>%d&#x2F;%u</td>
+<td>有符号10进制整型&#x2F;无符号10进制整型</td>
+</tr>
+<tr>
+<td>%c</td>
+<td>单个字符</td>
+</tr>
+<tr>
+<td>%s</td>
+<td>字符串</td>
+</tr>
+<tr>
+<td>%x&#x2F;%X</td>
+<td>无符号的16进制数字，x以小写形式输出X为大写形式，同样可以加#以消除前缀0x</td>
+</tr>
+<tr>
+<td>%o&#x2F;%#o</td>
+<td>无符号的8进制数字，有#的不输出前缀0</td>
+</tr>
+<tr>
+<td>%i</td>
+<td>输出有符号的10进制数字</td>
+</tr>
+<tr>
+<td>%lf</td>
+<td>有符号的双精度浮点数</td>
+</tr>
+<tr>
+<td>%.nf&#x2F;%.nlf</td>
+<td>在输出中想要保留n位小数</td>
+</tr>
+<tr>
+<td>%p</td>
+<td>打印地址</td>
+</tr>
+<tr>
+<td>%n</td>
+<td>用来统计printf在%n之前打印的字符个数；%n不会打印出内容</td>
+</tr>
+</tbody></table>
+<p><strong>关于 有符号和无符号整型的区别</strong></p>
+<p>无符号类型可以存放的整数范围比有符号整型中的范围大一倍，因为有符号类型将最高位储存符号，而无符号类型全都储存数字。比如16位系统中一个int能存储的数据的范围为-32768~ 32767，而unsigned能存储的数据范围则是0~65535。</p>
+<p><strong>关于%d和%i的区别</strong></p>
+<p>在C语言中，%i和%d都是格式控制符，用于格式化输出整数类型的变量。</p>
+<ul>
+<li><p>%d  用于输出有符号的十进制整数。它会将整数按照十进制形式输出，并且如果整数是负数，则会输出一个负号。</p>
+</li>
+<li><p>%i  也用于输出有符号的十进制整数。与%d相比，%i可以将八进制数字和十六进制数字转换成十进制数字输出。</p>
+</li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">Q-Sheep</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2024/03/31/pwn%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95%E4%B8%80/">http://example.com/2024/03/31/pwn%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95%E4%B8%80/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">Q-Sheep妙妙屋</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/PWN/">PWN</a><a class="post-meta__tags" href="/tags/%E6%A0%88%E6%BA%A2%E5%87%BA/">栈溢出</a></div><div class="post_share"><div class="social-share" data-image="/img/face.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2024/01/06/hello-world/" title="Hello World"><img class="cover" src="/img/face.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Hello World</div></div></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/head.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Q-Sheep</div><div class="author-info__description">pwn-misc-forensic</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">2</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%AF%84%E5%AD%98%E5%99%A8"><span class="toc-number">1.</span> <span class="toc-text">寄存器</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%84%E5%AD%98%E5%99%A8%E6%80%BB%E8%A7%88"><span class="toc-number">1.1.</span> <span class="toc-text">寄存器总览</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A0%88%E5%B8%A7"><span class="toc-number">1.2.</span> <span class="toc-text">栈帧</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8E%8B%E6%A0%88"><span class="toc-number">1.3.</span> <span class="toc-text">压栈</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%90%E5%87%BD%E6%95%B0%E5%92%8C%E7%88%B6%E5%87%BD%E6%95%B0"><span class="toc-number">1.4.</span> <span class="toc-text">子函数和父函数</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%A0%88%E6%BA%A2%E5%87%BA%E5%9F%BA%E7%A1%80"><span class="toc-number">2.</span> <span class="toc-text">栈溢出基础</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#C%E8%AF%AD%E8%A8%80%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%A0%88"><span class="toc-number">2.1.</span> <span class="toc-text">C语言函数调用栈</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E6%BC%8F%E6%B4%9E"><span class="toc-number">3.</span> <span class="toc-text">格式化字符串漏洞</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#printf%E5%87%BD%E6%95%B0"><span class="toc-number">3.1.</span> <span class="toc-text">printf函数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2"><span class="toc-number">3.2.</span> <span class="toc-text">格式化字符串</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%BC%E5%BC%8F%E5%8C%96%E5%AD%97%E7%AC%A6%E4%B8%B2%E8%BE%93%E5%87%BA%E7%B1%BB%E5%9E%8B"><span class="toc-number">3.2.1.</span> <span class="toc-text">格式化字符串输出类型</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2024/03/31/pwn%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95%E4%B8%80/" title="pwn学习记录一"><img src="/img/face.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="pwn学习记录一"/></a><div class="content"><a class="title" href="/2024/03/31/pwn%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95%E4%B8%80/" title="pwn学习记录一">pwn学习记录一</a><time datetime="2024-03-31T13:20:50.000Z" title="发表于 2024-03-31 21:20:50">2024-03-31</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/01/06/hello-world/" title="Hello World"><img src="/img/face.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Hello World"/></a><div class="content"><a class="title" href="/2024/01/06/hello-world/" title="Hello World">Hello World</a><time datetime="2024-01-06T07:11:01.534Z" title="发表于 2024-01-06 15:11:01">2024-01-06</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2024 By Q-Sheep</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.13.0"></script><script src="/js/main.js?v=4.13.0"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

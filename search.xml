@@ -18,4 +18,183 @@
 <p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
 ]]></content>
   </entry>
+  <entry>
+    <title>pwn学习记录一</title>
+    <url>/2024/03/31/pwn%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95%E4%B8%80/</url>
+    <content><![CDATA[<h1 id="寄存器"><a href="#寄存器" class="headerlink" title="寄存器"></a>寄存器</h1><h2 id="寄存器总览"><a href="#寄存器总览" class="headerlink" title="寄存器总览"></a>寄存器总览</h2><p>总览不同寄存器的区别和作用</p>
+<blockquote>
+<pre><code>RIP：程序计数寄存器，来存放下一条即将用来执行的指令的地址，它决定程序执行的流程。（较常用）
+RBP：栈基寄存器，存放当前栈帧的栈底地址（较常用）
+RAX：通用寄存器。存放函数返回值
+RSP：栈顶寄存器，存放当前栈帧的栈顶地址（较常用）
+RAX：随机存取寄存器
+AX：累加寄存器，分为AH高八位和AL低八位
+AH：累加寄存器，AX（16位）寄存器的高八位
+AL：累加寄存器，AX（16位）寄存器的低八位
+EAX:累加寄存器，是很多加法乘法指令的缺省寄存器
+EBX：基地址寄存器，在内存寻址时存放基地址
+ECX：计数器
+EDX：数据寄存器，被用于来放整数除法产生的余数
+ESI：源变址寄存器
+EDI：目的变址寄存器
+EBP：扩展基址指针寄存器，EBP来存储当前函数状态的基地址，在函数运行时不变，可以用来索引|确定函数参数或局部变量 的位置。（较常用）
+ESP：栈指针寄存器，ESP用来存储函数调用栈的栈顶地址，在压栈和退栈时 发生变化。（较常用）
+EIP：指令指针寄存器，EIP用来存储即将执行的程序指令的地址, cpu依照EIP的存储内容读取指令并执行，EIP 随之指向相 邻的下一条指令,如此反复,程序就得以连续执行指令。（较常用）
+
+————————————————
+
+64位cpu对应RSP（栈顶寄存器）,RBP（栈基寄存器）,RIP（程序计数寄存器）三个寄存器。
+32位cpu则对应ESP（栈指针寄存器），EBP（扩展基址指针寄存器），EIP（指令指针寄存器）三个寄存器。
+R开头：64bit, 8字节（1字节=8bit）
+E开头：32bit, 4字节
+EAX（累加寄存器）是32位， AX 是EAX的低16位 ， AL 和AH是AX的低8位和高8位。
+AX,BX,CX：16bit, 2字节
+AH, AL: 8bit, 1字节
+————————————————
+
+BX是基（base）地址寄存器：四个寄存器中唯一可作为存储器指针使用的寄存器。
+CX寄存器是计数(count)寄存器：在字符串操作和循环操作时，用它来控制重复循环操作次数。在移位操作时，cl寄存器用来保存移位的位数。
+BP和SP寄存器称为指针寄存器：BP主要用于给出堆栈中数据区基址的偏移，从而方便地实现直接存取堆栈中的数据，所以BP也称为基指针寄存器，正常情况下SP只作为堆栈指针使用，即保存堆栈栈顶地址的偏移。
+</code></pre>
+</blockquote>
+<p>ax  16位    eax   32位     rax    64位<br>al表示ax寄存器的低八位</p>
+<p>PTR   指针<br>BYTE   8位<br>WORD   16位<br>DWORD    32位<br>QWORD    64位</p>
+<p>rbp和rsp用来去做栈  rax用来储存程序的返回值 </p>
+<p><img src="https://s2.loli.net/2024/04/14/btjphJ2WOwnz671.png" alt="image-20240302102233231"></p>
+<h2 id="栈帧"><a href="#栈帧" class="headerlink" title="栈帧"></a>栈帧</h2><p>一个栈桢保存一个函数的状态信息，复合函数每调用一个子函数就会在函数调用栈中新增一个栈帧</p>
+<p>栈帧的栈底保存在ebp或rbp中，栈顶保存在esp或rsp中，cpu32位（x86)e开头，64位r开头</p>
+<p><img src="https://s2.loli.net/2024/04/14/VH3vn2EkUC5GpRb.png" alt="image-20240328164640740"></p>
+<p>右侧为计算机虚拟内存，中间stack部分就是栈</p>
+<p>ebp和esp之间的部分就是当前函数栈帧，紧邻这一部分的高地址位就是复合函数栈帧</p>
+<p>左侧arguments是子函数的，子函数的信息保存在父函数末尾</p>
+<p><strong>stack frame pointer</strong></p>
+<p>在当前调用子函数返回之后需要恢复上一个栈帧的信息，也就意味着ebp指针的位置也要被恢复，指针的值被保存在stack frame pointer中，他会在当前栈帧紧邻的上一个字长记录父函数的栈帧的栈底指针的值，方便之后恢复</p>
+<p><strong>callee saved registers</strong></p>
+<p>“被调用者保存寄存器”      在程序调用过程中，这些寄存器中的值需要被保存，不能被覆盖；当某个程序调用这些寄存器，被调用寄存器会先保存这些值然后再进行调用，且在调用结束后恢复被调用之前的值</p>
+<p><strong>local variables</strong></p>
+<p>当前函数栈帧的局部变量区（栈溢出发生在这里）</p>
+<p> <strong>两个很重要的部分</strong></p>
+<p> <em>return address</em>   返回地址 </p>
+<p><em>stack frame pointer</em>   上一个栈帧的栈顶的值，也就是上一个栈帧ebp寄存器的值 </p>
+<p>​                                （因为栈的存储特点（压栈）导致上一个函数的栈帧向上移动了一位）</p>
+<h2 id="压栈"><a href="#压栈" class="headerlink" title="压栈"></a>压栈</h2><p>倒序压栈，子函数的末尾先被压入，且从栈顶开始压栈，也就是说调用函数的开头在栈顶，而末尾更靠近栈底</p>
+<p><img src="https://s2.loli.net/2024/04/14/uB7whctxyvz4eUM.png" alt="image-20240328171701289"></p>
+<p>且栈的特殊点在于低位是栈顶，高位是栈底（这一点在虚拟内存栈和堆对于空白区域的运用是有关的</p>
+<p><img src="https://s2.loli.net/2024/04/14/5vTHSYPKAxoibwC.png" alt="image-20240328171830910"></p>
+<ul>
+<li><p>在压栈的过程中esp所对应的位置值会不断变小，这符合栈结构向下延伸的特点</p>
+</li>
+<li><p>压入栈内的数据包括调用参数、返回地址、调用函数的基地址，以及局部变量，其中调用参数以外的数据共同构成了被调用函数（callee）的状态</p>
+</li>
+<li><p>在编译过程中就会确定栈的空间大小（栈一般约有8MB的空间，堆相对来说大很多，可以申请几GB的内存空间）</p>
+</li>
+<li><p>在压栈完成之后，ebp指向的是子函数的栈底，esp指向的是子函数的栈顶</p>
+</li>
+<li><p>对于栈来说他的栈顶永远是当前执行函数所对应的栈帧</p>
+</li>
+</ul>
+<h2 id="子函数和父函数"><a href="#子函数和父函数" class="headerlink" title="子函数和父函数"></a>子函数和父函数</h2><p>首先是两个名词：调用函数  <strong>caller</strong>   被调用函数  <strong>callee</strong> </p>
+<p><img src="https://s2.loli.net/2024/04/14/AkneDb3sjaE9IxB.png" alt="image-20240328172921688"></p>
+<p>例如图片中的c文件脚本，运行的时候main函数会调用sum函数，因此在这个脚本中sum函数是子函数，main函数是sum函数的父函数</p>
+<p>在main函数调用sum函数时会把sum函数压栈到main函数的栈帧，将sum1，2逆序压入栈帧之中</p>
+<h1 id="栈溢出基础"><a href="#栈溢出基础" class="headerlink" title="栈溢出基础"></a>栈溢出基础</h1><h2 id="C语言函数调用栈"><a href="#C语言函数调用栈" class="headerlink" title="C语言函数调用栈"></a>C语言函数调用栈</h2><p>函数调用栈在虚拟内存用户空间的最高地址</p>
+<p><img src="https://s2.loli.net/2024/04/14/Doj2fmztnpHPa58.png" alt="image-20240414083149177"></p>
+<p>父函数每调用一个子函数就会在函数调用栈中新增一个栈帧</p>
+<p><img src="https://s2.loli.net/2024/04/14/uB7whctxyvz4eUM.png" alt="image-20240328171701289"></p>
+<p>如上图，先压入调用函数的参数</p>
+<p><img src="F:/%E4%BD%A0%E6%9C%89%E5%A4%9A%E6%83%B3pwn%E7%AC%94%E8%AE%B0/picture/image-20240328173558993.png" alt="image-20240328173558993"></p>
+<p>然后会将函数的返回地址（return address）压入栈顶，在sum函数执行完之后会运行return 0自动返回</p>
+<blockquote>
+<p>这里压入的返回地址就是return 0的地址</p>
+</blockquote>
+<p><img src="https://s2.loli.net/2024/04/14/kV7cH6uPW4Qiynt.png" alt="image-20240328180615269"></p>
+<p>在处理完sum函数之后就要恢复main函数的栈帧，这里就需要main函数的相关信息，也就意味着在处理sum函数之前我们就需要保存main函数的信息，这一步就是通过将main函数栈帧的ebp压入栈帧来实现的</p>
+<p><img src="https://s2.loli.net/2024/04/14/9fLbFmh5CiY4kOD.png" alt="image-20240328182825190"></p>
+<p>这里是将调用函数（callee) 的局部变量等数据压入栈内</p>
+<blockquote>
+<p>这一部分数据在调用完毕之后就会自动释放掉</p>
+</blockquote>
+<h1 id="格式化字符串漏洞"><a href="#格式化字符串漏洞" class="headerlink" title="格式化字符串漏洞"></a>格式化字符串漏洞</h1><p>格式化字符串漏洞是一种为例比较大的漏洞，造成原因是使用类似printf(str)这类语句，里面的str可以由用户自己定义，因而可以执行各种操作</p>
+<h2 id="printf函数"><a href="#printf函数" class="headerlink" title="printf函数"></a>printf函数</h2><p>出现格式化字符串漏洞就会有printf出现</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#include &lt;stdio.h&gt;</span><br><span class="line"></span><br><span class="line">       int printf(const char *format, ...);</span><br><span class="line">       int fprintf(FILE *stream, const char *format, ...);</span><br><span class="line">       int dprintf(int fd, const char *format, ...);</span><br><span class="line">       int sprintf(char *str, const char *format, ...);</span><br><span class="line">       int snprintf(char *str, size_t size, const char *format, ...);</span><br><span class="line"></span><br><span class="line">       #include &lt;stdarg.h&gt;</span><br><span class="line"></span><br><span class="line">       int vprintf(const char *format, va_list ap);</span><br><span class="line">       int vfprintf(FILE *stream, const char *format, va_list ap);</span><br><span class="line">       int vdprintf(int fd, const char *format, va_list ap);</span><br><span class="line">       int vsprintf(char *str, const char *format, va_list ap);</span><br><span class="line">       int vsnprintf(char *str, size_t size, const char *format, va_list ap);</span><br></pre></td></tr></table></figure>
+
+<p>总体特征：都有format格式化字符串和省略号</p>
+<p>省略号在C语言参数列表中表示未定参数，参数类型和数量都由用户自己决定的</p>
+<p>注：除了printf之外还有scanf也能出现格式化字符串漏洞</p>
+<h2 id="格式化字符串"><a href="#格式化字符串" class="headerlink" title="格式化字符串"></a>格式化字符串</h2><p>格式化字符串可以将特定的字符组合将进行转换说明，for example</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#include &lt;stdio.h&gt;</span><br><span class="line">int main()&#123;</span><br><span class="line">    year = 2021;</span><br><span class="line">    printf(&quot;hello,%d&quot;,year);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>%d就是这个特定的字符组合，在这里说明输出的应该是一个整型数字</p>
+<blockquote>
+<p>那么为什么需要格式化字符串呢？因为后面的参数并不确定(不管是个数还是数据类型)，计算机根本无法识别哪些数据是printf的参数，哪些数据是调用者的数据(因为函数调用之前就是把参数push进去)。因此如果有格式化字符串，首先系统会识别%，如果%后面跟的是正确的组合(例如d、s、p等)，然后就会判断后面的字符是否符合格式化字符串的规则，如果符合则会输出对应的数据。</p>
+</blockquote>
+<h3 id="格式化字符串输出类型"><a href="#格式化字符串输出类型" class="headerlink" title="格式化字符串输出类型"></a>格式化字符串输出类型</h3><p>%后跟特定字符代表以特定形式打印或其他方式处理字符串</p>
+<table>
+<thead>
+<tr>
+<th>形式</th>
+<th>定义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>%f&#x2F;%e</td>
+<td>浮点数&#x2F;科学表示格式的浮点数，%e如果是%E那么输出大写字母</td>
+</tr>
+<tr>
+<td>%d&#x2F;%u</td>
+<td>有符号10进制整型&#x2F;无符号10进制整型</td>
+</tr>
+<tr>
+<td>%c</td>
+<td>单个字符</td>
+</tr>
+<tr>
+<td>%s</td>
+<td>字符串</td>
+</tr>
+<tr>
+<td>%x&#x2F;%X</td>
+<td>无符号的16进制数字，x以小写形式输出X为大写形式，同样可以加#以消除前缀0x</td>
+</tr>
+<tr>
+<td>%o&#x2F;%#o</td>
+<td>无符号的8进制数字，有#的不输出前缀0</td>
+</tr>
+<tr>
+<td>%i</td>
+<td>输出有符号的10进制数字</td>
+</tr>
+<tr>
+<td>%lf</td>
+<td>有符号的双精度浮点数</td>
+</tr>
+<tr>
+<td>%.nf&#x2F;%.nlf</td>
+<td>在输出中想要保留n位小数</td>
+</tr>
+<tr>
+<td>%p</td>
+<td>打印地址</td>
+</tr>
+<tr>
+<td>%n</td>
+<td>用来统计printf在%n之前打印的字符个数；%n不会打印出内容</td>
+</tr>
+</tbody></table>
+<p><strong>关于 有符号和无符号整型的区别</strong></p>
+<p>无符号类型可以存放的整数范围比有符号整型中的范围大一倍，因为有符号类型将最高位储存符号，而无符号类型全都储存数字。比如16位系统中一个int能存储的数据的范围为-32768~ 32767，而unsigned能存储的数据范围则是0~65535。</p>
+<p><strong>关于%d和%i的区别</strong></p>
+<p>在C语言中，%i和%d都是格式控制符，用于格式化输出整数类型的变量。</p>
+<ul>
+<li><p>%d  用于输出有符号的十进制整数。它会将整数按照十进制形式输出，并且如果整数是负数，则会输出一个负号。</p>
+</li>
+<li><p>%i  也用于输出有符号的十进制整数。与%d相比，%i可以将八进制数字和十六进制数字转换成十进制数字输出。</p>
+</li>
+</ul>
+]]></content>
+      <tags>
+        <tag>PWN</tag>
+        <tag>栈溢出</tag>
+      </tags>
+  </entry>
 </search>
