@@ -107,8 +107,10 @@ BP和SP寄存器称为指针寄存器：BP主要用于给出堆栈中数据区�
 <p>比如说一个地址本来是0x400111，你开了pie之后，他在ida里面变成了0x111，假如你把他泄露出来了，泄露出来的是0x300111，那你就可以把0x300111和0x111做个差，就计算出来了pie基址，也就是0x300000，剩下的，你只要把ida里面的地址加上一个pie基址就行了</p>
 <h2 id="NX"><a href="#NX" class="headerlink" title="NX"></a>NX</h2><p>这个又叫做栈不可执行，就是<strong>放到栈里面的东西是不能够执行的</strong>，就比如说把systembinsh，写到了栈里面，但是是执行不了的</p>
 <p>比如说本来能通过asm（shellcraft.sh（））去给他写一个获取权限的东西，让他执行就能获取权限了，开了NX保护之后可能就不能这样了，这样的话就用libc，或者通过mprotect改变bss段的权限写到bss那边再去执行也行</p>
-<h1 id="栈溢出基础"><a href="#栈溢出基础" class="headerlink" title="栈溢出基础"></a>栈溢出基础</h1><p>ps:栈的大小只有8兆，但是堆（heap）的大小能申请几个G</p>
-<p>​     字长：32位1字长为32bit，64位是64bit</p>
+<h1 id="栈溢出基础"><a href="#栈溢出基础" class="headerlink" title="栈溢出基础"></a>栈溢出基础</h1><h2 id="定义与常识"><a href="#定义与常识" class="headerlink" title="定义与常识"></a>定义与常识</h2><p>栈溢出在本质上属于缓冲区溢出</p>
+<p><img src="https://s2.loli.net/2024/04/15/Ol9JIphrzk8D67S.png" alt="image-20240415105835952"></p>
+<p>bss的溢出可利用性特别依赖于程序本身编写的逻辑，对于一些关键函数在bss中的话bss溢出便可以造成一些比较严重的后果，相比之下栈本身带有return address只要发生溢出就会对程序产生严重的攻击效果，而堆溢出也是比较依赖于关键函数通常要用间接方式来控制程序执行流</p>
+<p><img src="https://s2.loli.net/2024/04/15/VPKm3zD5BlfYAba.png" alt="image-20240415110811684"></p>
 <h2 id="C语言函数调用栈"><a href="#C语言函数调用栈" class="headerlink" title="C语言函数调用栈"></a>C语言函数调用栈</h2><p>函数调用栈在虚拟内存用户空间的最高地址</p>
 <p><img src="https://s2.loli.net/2024/04/14/Doj2fmztnpHPa58.png" alt="image-20240414083149177"></p>
 <p>父函数每调用一个子函数就会在函数调用栈中新增一个栈帧</p>
@@ -128,89 +130,50 @@ BP和SP寄存器称为指针寄存器：BP主要用于给出堆栈中数据区�
 <p>但是释放掉只是移动指针使得目的区域不再被使用而不是抹除数据（这也是磁盘数据恢复的原理</p>
 </blockquote>
 <p><img src="https://s2.loli.net/2024/04/14/nH3UwFoESKlJVrD.png" alt="image-20240414205532333"></p>
+<p>详细分析第一个汇编代码</p>
 <p><img src="https://s2.loli.net/2024/04/14/SBVOaACtTJKZXo1.png" alt="image-20240414210256044"></p>
 <p>如图是一个C语言代码对应的汇编代码</p>
 <p>主要函数caller调用了被调用函数callee</p>
 <p>一般来说遵循C语言函数调用规范的函数的第一条都是push  %ebp   这一条代码的作用是保存父函数栈底的状态</p>
 <p>相对应的汇编代码末尾的leave函数是恢复父函数的栈底</p>
 <p>ret(return)就是进入父函数下一条指令</p>
-<h1 id="格式化字符串漏洞"><a href="#格式化字符串漏洞" class="headerlink" title="格式化字符串漏洞"></a>格式化字符串漏洞</h1><p>格式化字符串漏洞是一种为例比较大的漏洞，造成原因是使用类似printf(str)这类语句，里面的str可以由用户自己定义，因而可以执行各种操作</p>
-<h2 id="printf函数"><a href="#printf函数" class="headerlink" title="printf函数"></a>printf函数</h2><p>出现格式化字符串漏洞就会有printf出现</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#include &lt;stdio.h&gt;</span><br><span class="line"></span><br><span class="line">       int printf(const char *format, ...);</span><br><span class="line">       int fprintf(FILE *stream, const char *format, ...);</span><br><span class="line">       int dprintf(int fd, const char *format, ...);</span><br><span class="line">       int sprintf(char *str, const char *format, ...);</span><br><span class="line">       int snprintf(char *str, size_t size, const char *format, ...);</span><br><span class="line"></span><br><span class="line">       #include &lt;stdarg.h&gt;</span><br><span class="line"></span><br><span class="line">       int vprintf(const char *format, va_list ap);</span><br><span class="line">       int vfprintf(FILE *stream, const char *format, va_list ap);</span><br><span class="line">       int vdprintf(int fd, const char *format, va_list ap);</span><br><span class="line">       int vsprintf(char *str, const char *format, va_list ap);</span><br><span class="line">       int vsnprintf(char *str, size_t size, const char *format, va_list ap);</span><br></pre></td></tr></table></figure>
-
-<p>总体特征：都有format格式化字符串和省略号</p>
-<p>省略号在C语言参数列表中表示未定参数，参数类型和数量都由用户自己决定的</p>
-<p>注：除了printf之外还有scanf也能出现格式化字符串漏洞</p>
-<h2 id="格式化字符串"><a href="#格式化字符串" class="headerlink" title="格式化字符串"></a>格式化字符串</h2><p>格式化字符串可以将特定的字符组合将进行转换说明，for example</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#include &lt;stdio.h&gt;</span><br><span class="line">int main()&#123;</span><br><span class="line">    year = 2021;</span><br><span class="line">    printf(&quot;hello,%d&quot;,year);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>%d就是这个特定的字符组合，在这里说明输出的应该是一个整型数字</p>
+<p><img src="https://s2.loli.net/2024/04/15/bYCmpWqR7uh9MrF.png" alt="image-20240415101848496"></p>
+<p>第二行mov %esp,%ebp就是移动esp到ebp位置，因为ebp已经到新的栈帧处了</p>
+<p><img src="https://s2.loli.net/2024/04/15/XSbTzsBxgWvLFi9.png" alt="image-20240415101916589"></p>
+<p>sub为新的局部变量开辟空间，是esp-0x10然后就开辟出了一个0x10大小的空间</p>
+<p><img src="https://s2.loli.net/2024/04/15/zDG8FqKwmTbXl19.png" alt="image-20240415101938229"></p>
+<p>接下来三个push就是逆序压入被调用函数需要的三个参数</p>
+<p><img src="https://s2.loli.net/2024/04/15/wlDmAnuexNSWK9O.png" alt="image-20240415101957649"></p>
+<p>call lf&lt;calller+0xd&gt;调用被调函数</p>
 <blockquote>
-<p>那么为什么需要格式化字符串呢？因为后面的参数并不确定(不管是个数还是数据类型)，计算机根本无法识别哪些数据是printf的参数，哪些数据是调用者的数据(因为函数调用之前就是把参数push进去)。因此如果有格式化字符串，首先系统会识别%，如果%后面跟的是正确的组合(例如d、s、p等)，然后就会判断后面的字符是否符合格式化字符串的规则，如果符合则会输出对应的数据。</p>
+<p>call和jump的辨析：jump是一个跳转指令，例如上图如果jump指令从1e到29那么就是把eip从1e移动到29，但是调用call之后不仅把eip移动到了指定位置，还自带保存了返回地址（return address），这里的返回地址是23也就是call函数下一行函数的地址</p>
 </blockquote>
-<h3 id="格式化字符串输出类型"><a href="#格式化字符串输出类型" class="headerlink" title="格式化字符串输出类型"></a>格式化字符串输出类型</h3><p>%后跟特定字符代表以特定形式打印或其他方式处理字符串</p>
-<table>
-<thead>
-<tr>
-<th>形式</th>
-<th>定义</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>%f&#x2F;%e</td>
-<td>浮点数&#x2F;科学表示格式的浮点数，%e如果是%E那么输出大写字母</td>
-</tr>
-<tr>
-<td>%d&#x2F;%u</td>
-<td>有符号10进制整型&#x2F;无符号10进制整型</td>
-</tr>
-<tr>
-<td>%c</td>
-<td>单个字符</td>
-</tr>
-<tr>
-<td>%s</td>
-<td>字符串</td>
-</tr>
-<tr>
-<td>%x&#x2F;%X</td>
-<td>无符号的16进制数字，x以小写形式输出X为大写形式，同样可以加#以消除前缀0x</td>
-</tr>
-<tr>
-<td>%o&#x2F;%#o</td>
-<td>无符号的8进制数字，有#的不输出前缀0</td>
-</tr>
-<tr>
-<td>%i</td>
-<td>输出有符号的10进制数字</td>
-</tr>
-<tr>
-<td>%lf</td>
-<td>有符号的双精度浮点数</td>
-</tr>
-<tr>
-<td>%.nf&#x2F;%.nlf</td>
-<td>在输出中想要保留n位小数</td>
-</tr>
-<tr>
-<td>%p</td>
-<td>打印地址</td>
-</tr>
-<tr>
-<td>%n</td>
-<td>用来统计printf在%n之前打印的字符个数；%n不会打印出内容</td>
-</tr>
-</tbody></table>
-<p><strong>关于 有符号和无符号整型的区别</strong></p>
-<p>无符号类型可以存放的整数范围比有符号整型中的范围大一倍，因为有符号类型将最高位储存符号，而无符号类型全都储存数字。比如16位系统中一个int能存储的数据的范围为-32768~ 32767，而unsigned能存储的数据范围则是0~65535。</p>
-<p><strong>关于%d和%i的区别</strong></p>
-<p>在C语言中，%i和%d都是格式控制符，用于格式化输出整数类型的变量。</p>
-<ul>
-<li><p>%d  用于输出有符号的十进制整数。它会将整数按照十进制形式输出，并且如果整数是负数，则会输出一个负号。</p>
-</li>
-<li><p>%i  也用于输出有符号的十进制整数。与%d相比，%i可以将八进制数字和十六进制数字转换成十进制数字输出。</p>
-</li>
-</ul>
+<p>到这里就进入了被调函数</p>
+<p><img src="https://s2.loli.net/2024/04/15/yPBHz74JVFNYtDq.png" alt="image-20240415102658934"></p>
+<p>第一行也是push先保存主要函数的栈帧，然后把esp的值赋给ebp从而把ebp抬高到esp所在位置</p>
+<p><img src="https://s2.loli.net/2024/04/15/gzZCVA5Y4LxtqEd.png" alt="image-20240415102828086"></p>
+<p>这部分的函数是在对传进来的三个参数（1，2，3）进行参数运算</p>
+<p>最后运算结果保存在了eax寄存器中（约定俗成的将eax作为函数返回值的保存地址）</p>
+<p><img src="https://s2.loli.net/2024/04/15/gBmA5xbuZ7kXM2h.png" alt="image-20240415103058659"></p>
+<p>被调函数计算完成之后就要返回主要函数了</p>
+<blockquote>
+<p>pop与leave的辨析：leave比起pop多了一个把esp移到ebp位置的操作，leave %ebp &#x3D;mov %ebp,%esp  pop %ebp</p>
+</blockquote>
+<p>因为子函数没有开辟任何局部变量所以他在返回的时候ebp已经在esp相同的位置了</p>
+<p><img src="https://s2.loli.net/2024/04/15/whWPfFXgr2E4HCN.png" alt="image-20240415103907117"></p>
+<p>执行ret函数之后esp向上抬高了一位，eip回到了主调函数下一行函数</p>
+<p><img src="https://s2.loli.net/2024/04/15/TagQIX4dpjLUPAR.png" alt="image-20240415104126730"></p>
+<p>清空他的局部变量和被调参数</p>
+<p><img src="https://s2.loli.net/2024/04/15/IZpC4jLtRagAOln.png" alt="image-20240415104142761"></p>
+<p>同样计算相应数据之后保存在eax中，eax保存了caller函数的执行参数</p>
+<p><img src="https://s2.loli.net/2024/04/15/sxGuNCRKDZObzl1.png" alt="image-20240415104559107"></p>
+<p><img src="https://s2.loli.net/2024/04/15/6CGAExj9ZMObFcg.png" alt="image-20240415104716961"></p>
+<p>此时ebp和esp的位置需要使用leave函数而不是pop</p>
+<h2 id="解题思路"><a href="#解题思路" class="headerlink" title="解题思路"></a>解题思路</h2><p>最终目标就是获得目标服务器的shell从而操纵控制台来获取所需数据</p>
+<p>所用方法就是控制程序的执行流</p>
+<p>需要控制pc寄存器，在eip&#x2F;rip中写入数据</p>
+<p>因而需要控制能给pc寄存器赋值的数据，对栈来说return address会在返回的时候写入数据</p>
+<p>栈溢出就是通过一些特殊的方法在return address区域写入我们所需的能够挟持程序执行流的数据进而get shell</p>
 ]]></content>
       <tags>
         <tag>PWN</tag>
