@@ -1,13 +1,13 @@
-<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>pwn学习记录一 | Q-Sheep妙妙屋</title><meta name="author" content="Q-Sheep"><meta name="copyright" content="Q-Sheep"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="寄存器寄存器总览总览不同寄存器的区别和作用  RIP：程序计数寄存器，来存放下一条即将用来执行的指令的地址，它决定程序执行的流程。（较常用） RBP：栈基寄存器，存放当前栈帧的栈底地址（较常用） RAX：通用寄存器。存放函数返回值 RSP：栈顶寄存器，存放当前栈帧的栈顶地址（较常用） RAX：随机存取寄存器 AX：累加寄存器，分为AH高八位和AL低八位 AH：累加寄存器，AX（16位）寄存器的高八">
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>pwn学习记录一 | Q-Sheep妙妙屋</title><meta name="author" content="Q-Sheep"><meta name="copyright" content="Q-Sheep"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="来自pwn入门小白的学习记录，相关学习资源和一些笔记中的图片来自于B站XMCVE 2020 CTF Pwn入门课程，佬讲的很好学起来很清晰！！ 也以此督促自己好好学习 寄存器寄存器总览总览不同寄存器的区别和作用  RIP：程序计数寄存器，来存放下一条即将用来执行的指令的地址，它决定程序执行的流程。（较常用） RBP：栈基寄存器，存放当前栈帧的栈底地址（较常用） RAX：通用寄存器。存放函数返回值">
 <meta property="og:type" content="article">
 <meta property="og:title" content="pwn学习记录一">
 <meta property="og:url" content="http://example.com/2024/03/31/pwn%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95%E4%B8%80/index.html">
 <meta property="og:site_name" content="Q-Sheep妙妙屋">
-<meta property="og:description" content="寄存器寄存器总览总览不同寄存器的区别和作用  RIP：程序计数寄存器，来存放下一条即将用来执行的指令的地址，它决定程序执行的流程。（较常用） RBP：栈基寄存器，存放当前栈帧的栈底地址（较常用） RAX：通用寄存器。存放函数返回值 RSP：栈顶寄存器，存放当前栈帧的栈顶地址（较常用） RAX：随机存取寄存器 AX：累加寄存器，分为AH高八位和AL低八位 AH：累加寄存器，AX（16位）寄存器的高八">
+<meta property="og:description" content="来自pwn入门小白的学习记录，相关学习资源和一些笔记中的图片来自于B站XMCVE 2020 CTF Pwn入门课程，佬讲的很好学起来很清晰！！ 也以此督促自己好好学习 寄存器寄存器总览总览不同寄存器的区别和作用  RIP：程序计数寄存器，来存放下一条即将用来执行的指令的地址，它决定程序执行的流程。（较常用） RBP：栈基寄存器，存放当前栈帧的栈底地址（较常用） RAX：通用寄存器。存放函数返回值">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://example.com/img/face.jpg">
 <meta property="article:published_time" content="2024-03-31T13:20:50.000Z">
-<meta property="article:modified_time" content="2024-04-15T03:19:15.271Z">
+<meta property="article:modified_time" content="2024-04-18T13:08:28.645Z">
 <meta property="article:author" content="Q-Sheep">
 <meta property="article:tag" content="PWN">
 <meta property="article:tag" content="栈溢出">
@@ -57,7 +57,7 @@
   isHome: false,
   isHighlightShrink: false,
   isToc: true,
-  postUpdate: '2024-04-15 11:19:15'
+  postUpdate: '2024-04-18 21:08:28'
 }</script><script>(win=>{
       win.saveToLocal = {
         set: (key, value, ttl) => {
@@ -155,7 +155,9 @@
       }
       detectApple()
     })(window)</script><meta name="generator" content="Hexo 7.0.0"><link rel="alternate" href="/atom.xml" title="Q-Sheep妙妙屋" type="application/atom+xml">
-</head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/head.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">2</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><hr class="custom-hr"/></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/img/face.jpg')"><nav id="nav"><span id="blog-info"><a href="/" title="Q-Sheep妙妙屋"><span class="site-name">Q-Sheep妙妙屋</span></a></span><div id="menus"><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">pwn学习记录一</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-03-31T13:20:50.000Z" title="发表于 2024-03-31 21:20:50">2024-03-31</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-04-15T03:19:15.271Z" title="更新于 2024-04-15 11:19:15">2024-04-15</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="pwn学习记录一"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="寄存器"><a href="#寄存器" class="headerlink" title="寄存器"></a>寄存器</h1><h2 id="寄存器总览"><a href="#寄存器总览" class="headerlink" title="寄存器总览"></a>寄存器总览</h2><p>总览不同寄存器的区别和作用</p>
+</head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/head.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">2</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><hr class="custom-hr"/></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/img/face.jpg')"><nav id="nav"><span id="blog-info"><a href="/" title="Q-Sheep妙妙屋"><span class="site-name">Q-Sheep妙妙屋</span></a></span><div id="menus"><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">pwn学习记录一</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-03-31T13:20:50.000Z" title="发表于 2024-03-31 21:20:50">2024-03-31</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-04-18T13:08:28.645Z" title="更新于 2024-04-18 21:08:28">2024-04-18</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="pwn学习记录一"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><p>来自pwn入门小白的学习记录，相关学习资源和一些笔记中的图片来自于B站XMCVE 2020 CTF Pwn入门课程，佬讲的很好学起来很清晰！！</p>
+<p>也以此督促自己好好学习</p>
+<h1 id="寄存器"><a href="#寄存器" class="headerlink" title="寄存器"></a>寄存器</h1><h2 id="寄存器总览"><a href="#寄存器总览" class="headerlink" title="寄存器总览"></a>寄存器总览</h2><p>总览不同寄存器的区别和作用</p>
 <blockquote>
 <pre><code>RIP：程序计数寄存器，来存放下一条即将用来执行的指令的地址，它决定程序执行的流程。（较常用）
 RBP：栈基寄存器，存放当前栈帧的栈底地址（较常用）
@@ -211,6 +213,7 @@ BP和SP寄存器称为指针寄存器：BP主要用于给出堆栈中数据区�
 <p> <em>return address</em>   返回地址 </p>
 <p><em>stack frame pointer</em>   上一个栈帧的栈顶的值，也就是上一个栈帧ebp寄存器的值 </p>
 <p>​                                （因为栈的存储特点（压栈）导致上一个函数的栈帧向上移动了一位）</p>
+<p>第一个栈帧是main函数的栈帧，在main函数栈帧之上是没有其他函数的栈帧的</p>
 <h2 id="压栈"><a href="#压栈" class="headerlink" title="压栈"></a>压栈</h2><p>倒序压栈，子函数的末尾先被压入，且从栈顶开始压栈，也就是说调用函数的开头在栈顶，而末尾更靠近栈底</p>
 <p><img src="https://s2.loli.net/2024/04/14/uB7whctxyvz4eUM.png" alt="image-20240328171701289"></p>
 <p>且栈的特殊点在于低位是栈顶，高位是栈底（这一点在虚拟内存栈和堆对于空白区域的运用是有关的</p>
@@ -231,21 +234,48 @@ BP和SP寄存器称为指针寄存器：BP主要用于给出堆栈中数据区�
 <p><img src="https://s2.loli.net/2024/04/14/AkneDb3sjaE9IxB.png" alt="image-20240328172921688"></p>
 <p>例如图片中的c文件脚本，运行的时候main函数会调用sum函数，因此在这个脚本中sum函数是子函数，main函数是sum函数的父函数</p>
 <p>在main函数调用sum函数时会把sum函数压栈到main函数的栈帧，将sum1，2逆序压入栈帧之中</p>
-<h1 id="保护"><a href="#保护" class="headerlink" title="保护"></a>保护</h1><h2 id="canary"><a href="#canary" class="headerlink" title="canary"></a>canary</h2><p> 开启了的话就会在你的rbp上面放一个canary，就是一串随机数，<em>最后一个字节一定是00</em></p>
+<h1 id="内存保护措施"><a href="#内存保护措施" class="headerlink" title="内存保护措施"></a>内存保护措施</h1><h2 id="ASLR"><a href="#ASLR" class="headerlink" title="ASLR"></a>ASLR</h2><p>全称Address Space Layout Randomization</p>
+<p>是系统的防护措施，程序装载时生效</p>
+<ul>
+<li><p>&#x2F;proc&#x2F;sys&#x2F;kernel&#x2F;randomize_va_space &#x3D; 0：没有随机化。即关闭 ASLR</p>
+</li>
+<li><p>&#x2F;proc&#x2F;sys&#x2F;kernel&#x2F;randomize_va_space &#x3D; 1：保留的随机化。共享库、栈、mmap() 以及 VDSO 将被随机化</p>
+</li>
+<li><p>&#x2F;proc&#x2F;sys&#x2F;kernel&#x2F;randomize_va_space &#x3D; 2：完全的随机化。在randomize_va_space &#x3D; 1的基础上，通过 brk() 分配的内存空间也将被随机化</p>
+</li>
+</ul>
+<p>查看开启情况可以在文件目录中命令行输入cat &#x2F;proc&#x2F;sys&#x2F;kernel&#x2F;randomize_va_space 查看，根据数值的不同判断开启情况</p>
+<h2 id="Canary"><a href="#Canary" class="headerlink" title="Canary"></a>Canary</h2><p> 开启了的话就会在你的rbp上面放一个canary，就是一串随机数，<em>最后一个字节一定是00</em></p>
 <p><strong>解决方法</strong></p>
-<p>1.是printf，给他打印出来，打印的时候记得把他的最后一个字节填充了，不然截断了打印不出来，这个的话要学一下如何去接受，可能是个小难点</p>
-<p>2.是格式化字符串漏洞，就是通过%p给他打印出来，记得找准位置哈，%n$p（n是个常数）给他精准打印出来</p>
-<p>3.是爆破，这个使用可能比较局限，因为每次运行程序canary是会变的，所以在特定的情况下才能用</p>
-<h2 id="PIE"><a href="#PIE" class="headerlink" title="PIE"></a>PIE</h2><p>简单来讲就是每一次运行，函数的地址会不一样，ida里面的地址不能直接用，我们ida反编译的时候能看到地址，打开会发现地址变成了一个很小的数可能就四位数，也就是说，ida中显示的不再是一个准确的地址，是一个偏移地址，每次程序运行的时候，他都会把偏移地址，和一个随机的pie基址加一起，作为她的真实的地址，在做这种题的时候，我们就需要先去泄露出来一个函数的地址，再去找到他所对应的偏移，然后把他们减一下，找到偏移，就能够计算出来pie基址了，这下子所有的地址都能找到了</p>
-<p>这个的话，只要搞清楚偏移地址和pie基址之间的关系，剩下的和pie没开没啥区别，就是把原来确定的地址搞的随机化了，</p>
-<p>比如说一个地址本来是0x400111，你开了pie之后，他在ida里面变成了0x111，假如你把他泄露出来了，泄露出来的是0x300111，那你就可以把0x300111和0x111做个差，就计算出来了pie基址，也就是0x300000，剩下的，你只要把ida里面的地址加上一个pie基址就行了</p>
-<h2 id="NX"><a href="#NX" class="headerlink" title="NX"></a>NX</h2><p>这个又叫做栈不可执行，就是<strong>放到栈里面的东西是不能够执行的</strong>，就比如说把systembinsh，写到了栈里面，但是是执行不了的</p>
+<ul>
+<li><p>printf，给他打印出来，打印的时候记得把他的最后一个字节填充了，不然截断了打印不出来，这个的话要学一下如何去接受，可能是个小难点</p>
+</li>
+<li><p>是格式化字符串漏洞，就是通过%p给他打印出来，记得找准位置哈，%n$p（n是个常数）给他精准打印出来</p>
+</li>
+<li><p>是爆破，这个使用可能比较局限，因为每次运行程序canary是会变的，所以在特定的情况下才能用</p>
+</li>
+</ul>
+<h2 id="PIE"><a href="#PIE" class="headerlink" title="PIE"></a>PIE</h2><p>随机化elf文件运行映像的保护措施，一般针对的是text,data,<strong>bss段</strong></p>
+<p>简单来讲就是每一次运行，函数的地址会不一样，ida里面的地址不能直接用，我们ida反编译的时候能看到地址，打开会发现地址变成了一个很小的数可能就四位数，也就是说，ida中显示的不再是一个准确的地址，是一个偏移地址，每次程序运行的时候，他都会把偏移地址，和一个随机的pie基址加一起，作为她的真实的地址，在做这种题的时候，我们就需要先去泄露出来一个函数的地址，再去找到他所对应的偏移，然后把他们减一下，找到偏移，就能够计算出来pie基址了，这下子所有的地址都能找到了</p>
+<p>这个只要搞清楚偏移地址和pie基址之间的关系，剩下的和pie没开没啥区别，就是把原来确定的地址搞的随机化了，</p>
+<p>比如说一个地址本来是0x400111，开了pie之后，他在ida里面变成了0x111，假如把他泄露出来了，泄露出来的是0x300111，那就可以把0x300111和0x111做差，就计算出来了pie基址，也就是0x300000，剩下的，你只要把ida里面的地址加上一个pie基址就行了</p>
+<h2 id="the-NX-bits"><a href="#the-NX-bits" class="headerlink" title="the NX bits"></a>the NX bits</h2><p>程序与操作系统的防护措施，编译时决定是否生效，由操作系统实现</p>
+<p>这个又叫做栈不可执行，就是<strong>放到栈里面的东西是不能够执行的</strong>，就比如说把systembinsh，写到了栈里面，但是是执行不了的</p>
 <p>比如说本来能通过asm（shellcraft.sh（））去给他写一个获取权限的东西，让他执行就能获取权限了，开了NX保护之后可能就不能这样了，这样的话就用libc，或者通过mprotect改变bss段的权限写到bss那边再去执行也行</p>
 <h1 id="栈溢出基础"><a href="#栈溢出基础" class="headerlink" title="栈溢出基础"></a>栈溢出基础</h1><h2 id="定义与常识"><a href="#定义与常识" class="headerlink" title="定义与常识"></a>定义与常识</h2><p>栈溢出在本质上属于缓冲区溢出</p>
 <p><img src="https://s2.loli.net/2024/04/15/Ol9JIphrzk8D67S.png" alt="image-20240415105835952"></p>
 <p>bss的溢出可利用性特别依赖于程序本身编写的逻辑，对于一些关键函数在bss中的话bss溢出便可以造成一些比较严重的后果，相比之下栈本身带有return address只要发生溢出就会对程序产生严重的攻击效果，而堆溢出也是比较依赖于关键函数通常要用间接方式来控制程序执行流</p>
 <p><img src="https://s2.loli.net/2024/04/15/VPKm3zD5BlfYAba.png" alt="image-20240415110811684"></p>
-<h2 id="C语言函数调用栈"><a href="#C语言函数调用栈" class="headerlink" title="C语言函数调用栈"></a>C语言函数调用栈</h2><p>函数调用栈在虚拟内存用户空间的最高地址</p>
+<h2 id="C语言函数调用栈"><a href="#C语言函数调用栈" class="headerlink" title="C语言函数调用栈"></a>C语言函数调用栈</h2><p>操控栈主要是两个指令</p>
+<ul>
+<li><p>Push</p>
+<p>把目标值压栈，同时SP指针-1字长</p>
+</li>
+<li><p>POP</p>
+<p>将栈顶的值弹出至目标储存位置同时SP指针+1字长</p>
+</li>
+</ul>
+<p>函数调用栈在虚拟内存用户空间的最高地址</p>
 <p><img src="https://s2.loli.net/2024/04/14/Doj2fmztnpHPa58.png" alt="image-20240414083149177"></p>
 <p>父函数每调用一个子函数就会在函数调用栈中新增一个栈帧</p>
 <p><img src="https://s2.loli.net/2024/04/14/uB7whctxyvz4eUM.png" alt="image-20240328171701289"></p>
@@ -308,4 +338,72 @@ BP和SP寄存器称为指针寄存器：BP主要用于给出堆栈中数据区�
 <p>需要控制pc寄存器，在eip&#x2F;rip中写入数据</p>
 <p>因而需要控制能给pc寄存器赋值的数据，对栈来说return address会在返回的时候写入数据</p>
 <p>栈溢出就是通过一些特殊的方法在return address区域写入我们所需的能够挟持程序执行流的数据进而get shell</p>
-</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">Q-Sheep</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2024/03/31/pwn%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95%E4%B8%80/">http://example.com/2024/03/31/pwn%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95%E4%B8%80/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">Q-Sheep妙妙屋</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/PWN/">PWN</a><a class="post-meta__tags" href="/tags/%E6%A0%88%E6%BA%A2%E5%87%BA/">栈溢出</a></div><div class="post_share"><div class="social-share" data-image="/img/face.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2024/01/06/hello-world/" title="Hello World"><img class="cover" src="/img/face.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Hello World</div></div></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/head.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Q-Sheep</div><div class="author-info__description">pwn-misc-forensic</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">2</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%AF%84%E5%AD%98%E5%99%A8"><span class="toc-number">1.</span> <span class="toc-text">寄存器</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%84%E5%AD%98%E5%99%A8%E6%80%BB%E8%A7%88"><span class="toc-number">1.1.</span> <span class="toc-text">寄存器总览</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A0%88%E5%B8%A7"><span class="toc-number">1.2.</span> <span class="toc-text">栈帧</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8E%8B%E6%A0%88"><span class="toc-number">1.3.</span> <span class="toc-text">压栈</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%90%E5%87%BD%E6%95%B0%E5%92%8C%E7%88%B6%E5%87%BD%E6%95%B0"><span class="toc-number">1.4.</span> <span class="toc-text">子函数和父函数</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BF%9D%E6%8A%A4"><span class="toc-number">2.</span> <span class="toc-text">保护</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#canary"><span class="toc-number">2.1.</span> <span class="toc-text">canary</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#PIE"><span class="toc-number">2.2.</span> <span class="toc-text">PIE</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#NX"><span class="toc-number">2.3.</span> <span class="toc-text">NX</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%A0%88%E6%BA%A2%E5%87%BA%E5%9F%BA%E7%A1%80"><span class="toc-number">3.</span> <span class="toc-text">栈溢出基础</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9A%E4%B9%89%E4%B8%8E%E5%B8%B8%E8%AF%86"><span class="toc-number">3.1.</span> <span class="toc-text">定义与常识</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#C%E8%AF%AD%E8%A8%80%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%A0%88"><span class="toc-number">3.2.</span> <span class="toc-text">C语言函数调用栈</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%A3%E9%A2%98%E6%80%9D%E8%B7%AF"><span class="toc-number">3.3.</span> <span class="toc-text">解题思路</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2024/03/31/pwn%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95%E4%B8%80/" title="pwn学习记录一"><img src="/img/face.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="pwn学习记录一"/></a><div class="content"><a class="title" href="/2024/03/31/pwn%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95%E4%B8%80/" title="pwn学习记录一">pwn学习记录一</a><time datetime="2024-03-31T13:20:50.000Z" title="发表于 2024-03-31 21:20:50">2024-03-31</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/01/06/hello-world/" title="Hello World"><img src="/img/face.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Hello World"/></a><div class="content"><a class="title" href="/2024/01/06/hello-world/" title="Hello World">Hello World</a><time datetime="2024-01-06T07:11:01.534Z" title="发表于 2024-01-06 15:11:01">2024-01-06</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2024 By Q-Sheep</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.13.0"></script><script src="/js/main.js?v=4.13.0"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
+<h2 id="ret2text"><a href="#ret2text" class="headerlink" title="ret2text"></a>ret2text</h2><p>当写入数据过大，预设空间大小不足的时候就会发生栈溢出，当栈溢出到一定的程度的时候会覆盖掉return函数，如果我们控制覆盖ret函数的数据为我们想要程序执行的恶意数据，在ret函数执行之后就会达到我们想要的目的</p>
+<p><img src="C:/Users/25476/AppData/Roaming/Typora/typora-user-images/image-20240415142711817.png" alt="image-20240415142711817"></p>
+<p>如图便是要篡改栈帧上的返回地址，将其改为程序中透露出来的后门函数</p>
+<p>这是最简单的溢出类型，限制条件很多，需要后门函数等</p>
+<h2 id="ret2shellcode"><a href="#ret2shellcode" class="headerlink" title="ret2shellcode"></a>ret2shellcode</h2><p><img src="https://s2.loli.net/2024/04/16/ryEZ9IOTAljMwWg.png" alt="image-20240416075320064"></p>
+<ul>
+<li>篡改栈帧上的返回地址为攻击者手动传入的shellcode所在的缓冲区地址</li>
+<li>初期一般直接将shellcode写入栈缓冲区</li>
+<li>目前由于the NX bits保护措施的开启，栈缓冲区不可执行，因而常用手段变为向<strong>bss缓冲区</strong>（默认有可执行权限）写入shellcode或是向堆缓冲区（很不常用）写入，并使用mprotect赋予其可执行权限</li>
+</ul>
+<p>常用攻击手段的工具是shellcraft（自动生成shellcode）</p>
+<p>通常面对没有后门函数的情况时我们需要自行传入并让程序执行一个shellcode</p>
+<p>pwntools有自动帮助生成shellcode汇编代码的工具shellcraft</p>
+<p>例如 shellcraft.sh()   生成X86也就是32位系统使用的调用目标机器shell的汇编代码</p>
+<ul>
+<li>编写脚本文件</li>
+</ul>
+<p>1.<code>vim compile.sh</code></p>
+<blockquote>
+<p>#!&#x2F;bin&#x2F;sh</p>
+<p>​                                                              <em>关闭PIE</em>↓        ↓带上调试信息          </p>
+<p>gcc <strong>-fno-stack-protector</strong> -z execstack <strong>-no-pie</strong> -g <strong>-o</strong> ret2stack ret2stack.c</p>
+<p>​       ↑<em>关闭canary</em>                   ↑<em>开启栈的可执行权限</em>     ↑编写文件名称</p>
+</blockquote>
+<p>2.<code>chmod +x compile.sh 文件授权</code></p>
+<p>3.<code>./compile.sh</code></p>
+<ul>
+<li><p>打印地址 </p>
+<p><img src="https://s2.loli.net/2024/04/18/szDwLCermB8VcIW.png" alt="image-20240418173506959"></p>
+</li>
+</ul>
+<p>直接编辑题目源文件</p>
+<p>在char str之后加上printf代码，然后注释掉gets,这样就能够直接打印相应变量地址</p>
+<p>%p表示的就是打印地址</p>
+<h1 id="exp的技巧"><a href="#exp的技巧" class="headerlink" title="exp的技巧"></a>exp的技巧</h1><ul>
+<li>打印指令辨析</li>
+</ul>
+<blockquote>
+<ol>
+<li>echo：echo命令用于显示文本或变量的内容，并在终端上打印它们。它简单易用，主要用于显示简单的文本或变量值。例如</li>
+</ol>
+<p>​      echo “Hello, world!” 将在终端上显示 “Hello, world!”。 </p>
+<ol start="2">
+<li>cat：cat命令用于连接文件并显示它们的内容。它通常用于显示文本文件的内容，也可以用于连接多个文件、创建新文件等。例如，cat file.txt将显示名为 file.txt 的文本文件的内容。 </li>
+<li>printf：printf 命令用于格式化并打印输出。它可以根据指定的格式字符串输出文本，支持格式化输出数字、字符串等。与 echo不同，printf 提供了更丰富的格式化选项。例如，printf “%s\n” “Hello, world!” 将打印 “Hello, world!” 并换行。</li>
+</ol>
+</blockquote>
+<p>exp通常是基于python环境的对于程序发起攻击的指令的集成脚本，既可以vim exp.py编写之后python exp.py执行，也可以直接启动python环境之后输入相应指令进行攻击</p>
+<ul>
+<li><p>from pwn import*   调用pwn的远程库</p>
+</li>
+<li><p>io &#x3D; process(“.&#x2F;example”)   本地调试</p>
+</li>
+<li><p>io &#x3D; remote(“ip”,端口号)    远程连接</p>
+</li>
+<li><p>payload &#x3D; asm(shellcraft.sh()).ljust(112,b”A”)    根据需要构建payload，通常输入字符都是A因为刚好大小为一字节，asm是将汇编代码转换为机械码</p>
+</li>
+<li><p>io.sendline(payload)   发送payload</p>
+</li>
+<li><p>io.interactive()   实现动态交互</p>
+</li>
+<li><p>ljust（）指令：l表示left，指令是用来从左向右补充字节型数据直到长度达到限度，例如ljuist(112，b”A”)  写入字节型数据A直到填充字节达到112字节</p>
+</li>
+</ul>
+<p>python是一个很好用的计算工具，在python环境中可以实现十六进制和十进制的转换和各种运算求值</p>
+<ul>
+<li>当面对的是64位程序，在攻击时要记得调整为64位（默认都是32位）方法为输入<code>context.arch=&quot;amd64&quot;</code></li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">Q-Sheep</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2024/03/31/pwn%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95%E4%B8%80/">http://example.com/2024/03/31/pwn%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95%E4%B8%80/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://example.com" target="_blank">Q-Sheep妙妙屋</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/PWN/">PWN</a><a class="post-meta__tags" href="/tags/%E6%A0%88%E6%BA%A2%E5%87%BA/">栈溢出</a></div><div class="post_share"><div class="social-share" data-image="/img/face.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2024/01/06/hello-world/" title="Hello World"><img class="cover" src="/img/face.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Hello World</div></div></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/head.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Q-Sheep</div><div class="author-info__description">pwn-misc-forensic</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">2</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">2</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%AF%84%E5%AD%98%E5%99%A8"><span class="toc-number">1.</span> <span class="toc-text">寄存器</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%84%E5%AD%98%E5%99%A8%E6%80%BB%E8%A7%88"><span class="toc-number">1.1.</span> <span class="toc-text">寄存器总览</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A0%88%E5%B8%A7"><span class="toc-number">1.2.</span> <span class="toc-text">栈帧</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8E%8B%E6%A0%88"><span class="toc-number">1.3.</span> <span class="toc-text">压栈</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%90%E5%87%BD%E6%95%B0%E5%92%8C%E7%88%B6%E5%87%BD%E6%95%B0"><span class="toc-number">1.4.</span> <span class="toc-text">子函数和父函数</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%86%85%E5%AD%98%E4%BF%9D%E6%8A%A4%E6%8E%AA%E6%96%BD"><span class="toc-number">2.</span> <span class="toc-text">内存保护措施</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#ASLR"><span class="toc-number">2.1.</span> <span class="toc-text">ASLR</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Canary"><span class="toc-number">2.2.</span> <span class="toc-text">Canary</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#PIE"><span class="toc-number">2.3.</span> <span class="toc-text">PIE</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#the-NX-bits"><span class="toc-number">2.4.</span> <span class="toc-text">the NX bits</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%A0%88%E6%BA%A2%E5%87%BA%E5%9F%BA%E7%A1%80"><span class="toc-number">3.</span> <span class="toc-text">栈溢出基础</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9A%E4%B9%89%E4%B8%8E%E5%B8%B8%E8%AF%86"><span class="toc-number">3.1.</span> <span class="toc-text">定义与常识</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#C%E8%AF%AD%E8%A8%80%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%A0%88"><span class="toc-number">3.2.</span> <span class="toc-text">C语言函数调用栈</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%A3%E9%A2%98%E6%80%9D%E8%B7%AF"><span class="toc-number">3.3.</span> <span class="toc-text">解题思路</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ret2text"><span class="toc-number">3.4.</span> <span class="toc-text">ret2text</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ret2shellcode"><span class="toc-number">3.5.</span> <span class="toc-text">ret2shellcode</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#exp%E7%9A%84%E6%8A%80%E5%B7%A7"><span class="toc-number">4.</span> <span class="toc-text">exp的技巧</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2024/03/31/pwn%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95%E4%B8%80/" title="pwn学习记录一"><img src="/img/face.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="pwn学习记录一"/></a><div class="content"><a class="title" href="/2024/03/31/pwn%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95%E4%B8%80/" title="pwn学习记录一">pwn学习记录一</a><time datetime="2024-03-31T13:20:50.000Z" title="发表于 2024-03-31 21:20:50">2024-03-31</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/01/06/hello-world/" title="Hello World"><img src="/img/face.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Hello World"/></a><div class="content"><a class="title" href="/2024/01/06/hello-world/" title="Hello World">Hello World</a><time datetime="2024-01-06T07:11:01.534Z" title="发表于 2024-01-06 15:11:01">2024-01-06</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2024 By Q-Sheep</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.13.0"></script><script src="/js/main.js?v=4.13.0"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
